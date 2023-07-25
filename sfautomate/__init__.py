@@ -2,8 +2,6 @@ import os
 import sys
 import subprocess
 import json
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -16,20 +14,17 @@ import base64
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         
-        # Commented out Key Vault related stuff
-        vault_url = os.getenv("KEY_VAULT_URL")  # Key Vault URL
-        secret_name = os.getenv("SECRET_NAME")  # Name of the secret containing the .pfx certificate
+
         cluster_endpoint = os.getenv("CLUSTER_ENDPOINT")  # Service Fabric cluster endpoint
 
-        # Retrieve the .pfx certificate from Azure Key Vault
-        credential = DefaultAzureCredential()
-        client = SecretClient(vault_url=vault_url, credential=credential)
-        secret = client.get_secret(secret_name)
-        pfx_certificate = secret.value
         
-        # Convert the certificate into bytes
-        pfx_certificate_bytes = base64.b64decode(pfx_certificate)
-              
+
+        #Load the .pfx certificate from a file
+        with open("wildCertificate.pfx", "rb") as f:
+            pfx_certificate_bytes = f.read()
+        
+        
+
         # Load the .pfx certificate and extract the private key and certificate
         private_key, certificate, _ = pkcs12.load_key_and_certificates(pfx_certificate_bytes, b"")
 
